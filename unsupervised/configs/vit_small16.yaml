@@ -1,0 +1,43 @@
+# Backbone
+backbone: vit_small_patch16_224
+embed_dim: 384              # ViT-Small hidden dim
+use_imagenet_init: true
+
+# DINO head
+proj_hidden_dim: 2048
+proj_bottleneck_dim: 256
+proj_output_dim: 65536     # DINO uses large output dim with centering
+num_proj_layers: 3
+
+# Multi-crop augmentation
+global_crop_size: 224
+local_crop_size: 96
+num_global_crops: 2
+num_local_crops: 6          # Reduce to 4 if OOM
+
+# Training
+batch_size: 64              # ViT-S/16 is similar in size to ResNet-50
+epochs: 100
+warmup_epochs: 10
+base_lr: 0.0005             # Scaled: base_lr * batch_size / 256
+weight_decay: 0.04
+weight_decay_end: 0.4
+
+# Teacher EMA
+teacher_momentum_start: 0.996
+teacher_momentum_end: 1.0
+
+# Temperature
+teacher_temp: 0.04
+teacher_temp_warmup: 0.04
+teacher_temp_warmup_epochs: 0
+student_temp: 0.1
+
+# Center momentum
+center_momentum: 0.9
+
+# System
+num_workers: 2
+pin_memory: true
+checkpoint_freq: 10          # Save every N epochs
+output_dir: ./checkpoints/vit_small16

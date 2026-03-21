@@ -1,0 +1,27 @@
+# Checkpoints & weights
+checkpoints/
+*.pth
+
+# Python
+__pycache__/
+*.pyc
+.eggs/
+*.egg-info/
+
+# Environment
+.venv/
+venv/
+env/
+
+# Jupyter / Colab
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+DINO_UNSUPERVISED_PRETRAINING_ARCHITECTURE.md
