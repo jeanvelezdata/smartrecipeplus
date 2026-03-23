@@ -148,7 +148,7 @@ def train(args):
         weight_decay=cfg["weight_decay"],
     )
 
-    scaler = torch.cuda.amp.GradScaler(enabled=device.type == "cuda")
+    scaler = torch.amp.GradScaler("cuda", enabled=device.type == "cuda")
 
     # Resume
     start_epoch = 0
@@ -210,7 +210,7 @@ def train(args):
             is_last_batch = (batch_idx + 1) == num_batches
 
             # Forward 
-            with torch.amp.autocast(enabled=device.type == "cuda"):
+            with torch.amp.autocast(device_type="cuda", enabled=device.type == "cuda"):
                 student_out = model.forward_student(crops)
                 teacher_out = model.forward_teacher(global_crops)
                 loss = criterion(student_out, teacher_out, model.center)
