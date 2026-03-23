@@ -6,7 +6,6 @@ References:
     https://arxiv.org/abs/2104.14294
 """
 
-import copy
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -98,9 +97,11 @@ class DINOModel(nn.Module):
             embed_dim, proj_hidden_dim, proj_bottleneck_dim, proj_output_dim
         )
 
-        # Teacher 
-        self.teacher_backbone = copy.deepcopy(self.student_backbone)
-        self.teacher_head = copy.deepcopy(self.student_head)
+        # Teacher — constructed independently, then initialised from student weights
+        self.teacher_backbone, _ = get_backbone(backbone_name, pretrained)
+        self.teacher_backbone.load_state_dict(self.student_backbone.state_dict())
+        self.teacher_head = DINOHead(embed_dim, proj_hidden_dim, proj_bottleneck_dim, proj_output_dim)
+        self.teacher_head.load_state_dict(self.student_head.state_dict())
         for param in self.teacher_backbone.parameters():
             param.requires_grad = False
         for param in self.teacher_head.parameters():
@@ -213,9 +214,6 @@ class DINOLoss(nn.Module):
         Returns:
             Scalar loss tensor.
         """
-        num_teacher = len(teacher_output)   
-        num_student = len(student_output)   
-
         # Teacher: centre → temperature scale → softmax
         teacher_probs = [
             F.softmax((t - center) / self.teacher_temp, dim=-1)
