@@ -22,7 +22,7 @@ from torch.utils.data import DataLoader
 # Allow imports from the unsupervised/ root regardless of cwd
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from data.prepare_food101 import get_food101_images
+from data.prepare_food101 import get_food101_images, get_local_images
 from models.dino import DINOLoss, DINOModel
 from utils.augmentations import DINOMultiCropTransform, dino_collate_fn
 from utils.checkpoint import load_checkpoint, save_checkpoint, save_to_drive
@@ -92,7 +92,10 @@ def train(args):
         local_crop_size=cfg["local_crop_size"],
         num_local_crops=cfg["num_local_crops"],
     )
-    dataset = get_food101_images(split="all")
+    if args.data_dir:
+        dataset = get_local_images(args.data_dir)
+    else:
+        dataset = get_food101_images(split="all")
 
     class _WrappedDataset(torch.utils.data.Dataset):
         """Apply DINOMultiCropTransform to a PIL-image dataset."""
@@ -288,6 +291,12 @@ def parse_args():
     parser = argparse.ArgumentParser(description="DINO pretraining")
     parser.add_argument("--config", required=True, help="Path to YAML config file")
     parser.add_argument("--resume", default=None, help="Path to checkpoint to resume from")
+    parser.add_argument(
+        "--data-dir",
+        default=None,
+        help="Path to a local directory of food images (fast path). "
+             "If omitted, downloads Food-101 via HuggingFace datasets.",
+    )
     parser.add_argument(
         "--low-memory",
         action="store_true",
