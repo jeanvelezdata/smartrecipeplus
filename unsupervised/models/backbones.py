@@ -27,7 +27,7 @@ def get_resnet50(pretrained=True):
 
     weights = ResNet50_Weights.DEFAULT if pretrained else None
     base = tvm.resnet50(weights=weights)
-    # Remove the classification head; keep avgpool
+
     base.fc = nn.Identity()
     return base, 2048
 
@@ -49,7 +49,7 @@ def get_vit_small(pretrained=True):
     model = timm.create_model(
         "vit_small_patch16_224",
         pretrained=pretrained,
-        num_classes=0,   # removes the classification head; forward returns CLS token
+        num_classes=0,   
     )
     return model, 384
 

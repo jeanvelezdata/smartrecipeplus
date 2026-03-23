@@ -23,7 +23,7 @@ class DINOHead(nn.Module):
         WeightNorm Linear(bottleneck_dim → output_dim, bias=False)  ← last layer
 
     The last linear layer uses weight normalisation (L2-normalised weight rows)
-    and does NOT receive gradients through its weight norm component —
+    and does not receive gradients through its weight norm component —
     it is fixed as a normalised projection via torch.nn.utils.weight_norm.
 
     Args:
@@ -92,13 +92,13 @@ class DINOModel(nn.Module):
         super().__init__()
         from models.backbones import get_backbone
 
-        # ── Student ──────────────────────────────────────────────────────────
+        # Student
         self.student_backbone, embed_dim = get_backbone(backbone_name, pretrained)
         self.student_head = DINOHead(
             embed_dim, proj_hidden_dim, proj_bottleneck_dim, proj_output_dim
         )
 
-        # ── Teacher (deep copy, gradients disabled) ───────────────────────
+        # Teacher 
         self.teacher_backbone = copy.deepcopy(self.student_backbone)
         self.teacher_head = copy.deepcopy(self.student_head)
         for param in self.teacher_backbone.parameters():
@@ -106,7 +106,7 @@ class DINOModel(nn.Module):
         for param in self.teacher_head.parameters():
             param.requires_grad = False
 
-        # ── Center buffer (used by DINOLoss) ─────────────────────────────
+        # Center buffer
         self.register_buffer("center", torch.zeros(1, proj_output_dim))
 
     # ------------------------------------------------------------------
@@ -213,8 +213,8 @@ class DINOLoss(nn.Module):
         Returns:
             Scalar loss tensor.
         """
-        num_teacher = len(teacher_output)   # 2
-        num_student = len(student_output)   # 2 + num_local_crops
+        num_teacher = len(teacher_output)   
+        num_student = len(student_output)   
 
         # Teacher: centre → temperature scale → softmax
         teacher_probs = [
@@ -233,7 +233,7 @@ class DINOLoss(nn.Module):
 
         for t_idx, t_prob in enumerate(teacher_probs):
             for s_idx, s_log_prob in enumerate(student_log_probs):
-                # Skip same-crop pairs (student global crop i vs teacher global crop i)
+                # Skip same-crop pairs 
                 if s_idx == t_idx:
                     continue
                 # Cross-entropy: -sum(p_teacher * log p_student), averaged over batch
