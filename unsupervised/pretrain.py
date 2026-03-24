@@ -114,6 +114,8 @@ def train(args):
         shuffle=True,
         num_workers=cfg["num_workers"],
         pin_memory=cfg.get("pin_memory", True),
+        persistent_workers=True,             
+        prefetch_factor=3, 
         drop_last=True,
         collate_fn=dino_collate_fn,
     )

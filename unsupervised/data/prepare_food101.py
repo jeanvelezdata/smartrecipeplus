@@ -3,10 +3,10 @@ Download and prepare the Food-101 dataset for DINO pretraining.
 
 Two dataset backends are provided:
 
-  HuggingFace (default, no local setup required):
+  HuggingFace:
       get_food101_images(split="all")
 
-  Local directory (fast — use this when images are already on disk):
+  Local directory:
       get_local_images(data_dir="/content/food101_images")
 
       Expects data_dir to contain JPEG/PNG files in any nested structure,
@@ -29,10 +29,7 @@ import argparse
 from pathlib import Path
 from torch.utils.data import Dataset, ConcatDataset
 
-
-# ---------------------------------------------------------------------------
 # HuggingFace backend
-# ---------------------------------------------------------------------------
 
 class Food101ImageDataset(Dataset):
     """PyTorch Dataset that wraps a HuggingFace Food-101 split and yields only PIL images."""
@@ -73,10 +70,7 @@ def get_food101_images(split="train"):
     hf_ds = load_dataset("ethz/food101", split=split)
     return Food101ImageDataset(hf_ds)
 
-
-# ---------------------------------------------------------------------------
-# Local directory backend (fast path)
-# ---------------------------------------------------------------------------
+# Local directory backend 
 
 _IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 
@@ -86,8 +80,7 @@ class LocalImageDataset(Dataset):
     Glob-based Dataset that reads images from a local directory tree.
 
     Walks data_dir recursively and collects all files with a recognised
-    image extension.  Labels are discarded — only PIL images are returned,
-    making this a drop-in replacement for Food101ImageDataset.
+    image extension.  Labels are discarded, only PIL images are returned.
 
     Args:
         data_dir: Root directory to search (str or Path).
@@ -138,7 +131,7 @@ def _verify():
     import matplotlib.pyplot as plt
 
     print("Downloading / loading Food-101 (train + validation)...")
-    dataset = get_food101_images(split="all")
+    dataset = get_local_images(data_dir="/content/food101_images")
     print(f"Total images: {len(dataset)}")
 
     indices = random.sample(range(len(dataset)), 16)

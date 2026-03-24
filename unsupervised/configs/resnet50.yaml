@@ -13,7 +13,7 @@ num_proj_layers: 3
 global_crop_size: 224
 local_crop_size: 96
 num_global_crops: 2
-num_local_crops: 6          
+num_local_crops: 2          
 
 # Training
 batch_size: 64              
@@ -37,7 +37,7 @@ student_temp: 0.1
 center_momentum: 0.9
 
 # System
-num_workers: 4
+num_workers: 6
 pin_memory: true
 checkpoint_freq: 10          
 output_dir: ./checkpoints/resnet50

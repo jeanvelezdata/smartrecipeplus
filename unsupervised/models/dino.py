@@ -116,30 +116,33 @@ class DINOModel(nn.Module):
 
     def forward_student(self, images_list):
         """
-        Run ALL crops (global + local) through the student.
-
-        Args:
-            images_list: List of tensors, each [B, 3, H, W].
-
-        Returns:
-            List of output logit tensors, each [B, output_dim].
+        Batch all crops into a single forward pass.
         """
-        return [self.student_head(self.student_backbone(img)) for img in images_list]
+        num_crops = len(images_list)
+        batch_size = images_list[0].shape[0]
+
+        # Concatenate all crops
+        all_imgs = torch.cat(images_list, dim=0)  # [num_crops * B, 3, H, W]
+
+        feats = self.student_backbone(all_imgs)
+        out = self.student_head(feats)
+
+        # Split back into list
+        return out.chunk(num_crops)
 
     @torch.no_grad()
     def forward_teacher(self, global_images_list):
         """
-        Run ONLY the global crops (first 2) through the teacher.
-
-        Always executed inside torch.no_grad().
-
-        Args:
-            global_images_list: List of 2 tensors, each [B, 3, 224, 224].
-
-        Returns:
-            List of 2 output logit tensors, each [B, output_dim].
+        Batch the 2 global crops.
         """
-        return [self.teacher_head(self.teacher_backbone(img)) for img in global_images_list]
+        num_crops = len(global_images_list)
+
+        all_imgs = torch.cat(global_images_list, dim=0)  # [2 * B, 3, H, W]
+
+        feats = self.teacher_backbone(all_imgs)
+        out = self.teacher_head(feats)
+
+        return out.chunk(num_crops)
 
     # ------------------------------------------------------------------
     # EMA & center updates
