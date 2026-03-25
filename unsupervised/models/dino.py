@@ -116,19 +116,27 @@ class DINOModel(nn.Module):
 
     def forward_student(self, images_list):
         """
-        Batch all crops into a single forward pass.
+        Batch all crops into a single forward pass per spatial size.
+
+        Global (224px) and local (96px) crops have different spatial dims, so
+        they are grouped by size, each group is cat'd and run through the
+        backbone+head in one shot, then the outputs are reassembled in the
+        original crop order.
         """
-        num_crops = len(images_list)
-        batch_size = images_list[0].shape[0]
+        # Group crop indices by spatial resolution
+        size_to_indices = {}
+        for i, img in enumerate(images_list):
+            size_to_indices.setdefault(img.shape[-1], []).append(i)
 
-        # Concatenate all crops
-        all_imgs = torch.cat(images_list, dim=0)  # [num_crops * B, 3, H, W]
+        outputs = [None] * len(images_list)
+        for indices in size_to_indices.values():
+            batch = torch.cat([images_list[i] for i in indices], dim=0)
+            feats = self.student_backbone(batch)
+            out = self.student_head(feats)
+            for chunk, idx in zip(out.chunk(len(indices)), indices):
+                outputs[idx] = chunk
 
-        feats = self.student_backbone(all_imgs)
-        out = self.student_head(feats)
-
-        # Split back into list
-        return out.chunk(num_crops)
+        return outputs
 
     @torch.no_grad()
     def forward_teacher(self, global_images_list):
