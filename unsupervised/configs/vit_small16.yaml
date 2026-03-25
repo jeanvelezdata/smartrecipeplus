@@ -16,7 +16,7 @@ num_global_crops: 2
 num_local_crops: 6          
 
 # Training
-batch_size: 64              
+batch_size: 128
 epochs: 30
 warmup_epochs: 10
 base_lr: 0.0005             

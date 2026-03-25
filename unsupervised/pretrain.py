@@ -153,7 +153,6 @@ def train(args):
         weight_decay=cfg["weight_decay"],
     )
 
-    scaler = torch.amp.GradScaler("cuda", enabled=device.type == "cuda")
 
     # Resume
     start_epoch = 0
@@ -165,7 +164,6 @@ def train(args):
         model.teacher_head.load_state_dict(ckpt["teacher_head"])
         model.center.copy_(ckpt["center"])
         optimizer.load_state_dict(ckpt["optimizer"])
-        scaler.load_state_dict(ckpt["scaler"])
         start_epoch = ckpt["epoch"] + 1
         print(f"Resumed from epoch {ckpt['epoch']}")
 
@@ -215,23 +213,20 @@ def train(args):
             is_last_batch = (batch_idx + 1) == num_batches
 
             # Forward 
-            with torch.amp.autocast(device_type="cuda", enabled=device.type == "cuda"):
+            with torch.amp.autocast(device_type="cuda", dtype=torch.bfloat16, enabled=device.type == "cuda"):
                 student_out = model.forward_student(crops)
                 teacher_out = model.forward_teacher(global_crops)
                 loss = criterion(student_out, teacher_out, model.center)
                 # Scale loss for gradient accumulation
                 loss_scaled = loss / grad_accum_steps
 
-            # Backward 
-            scaler.scale(loss_scaled).backward()
+            # Backward
+            loss_scaled.backward()
 
             if not is_accum_step or is_last_batch:
-                # Unscale before clipping
-                scaler.unscale_(optimizer)
                 nn.utils.clip_grad_norm_(student_parameters(model), max_norm=3.0)
 
-                scaler.step(optimizer)
-                scaler.update()
+                optimizer.step()
                 optimizer.zero_grad()
 
                 # Teacher EMA & center update
@@ -246,8 +241,7 @@ def train(args):
                 f"[Batch {batch_idx+1}/{num_batches}] "
                 f"loss: {loss.item():.4f}  "
                 f"lr: {lr:.6f}  "
-                f"momentum: {teacher_momentum:.4f}  "
-                f"scale: {scaler.get_scale():.0f}"
+                f"momentum: {teacher_momentum:.4f}"
             )
 
             # CSV logging
@@ -270,7 +264,6 @@ def train(args):
                 "teacher_backbone": model.teacher_backbone.state_dict(),
                 "teacher_head": model.teacher_head.state_dict(),
                 "optimizer": optimizer.state_dict(),
-                "scaler": scaler.state_dict(),
                 "center": model.center,
                 "loss": running_loss,
             }
