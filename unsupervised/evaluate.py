@@ -68,13 +68,18 @@ def get_eval_transform():
 
 def load_backbone_from_checkpoint(checkpoint_path, backbone_name, pretrained_fallback=True):
     """
-    Load student backbone weights from a DINO checkpoint.
+    Load teacher backbone weights from a DINO checkpoint.
 
-    Falls back to ImageNet pretrained weights if checkpoint_path is None.
+    The teacher backbone is preferred over the student because its EMA-smoothed
+    weights are more stable and produce higher-quality representations at
+    inference time.
+
+    Falls back to ImageNet pretrained weights if checkpoint_path is None or if
+    the checkpoint does not contain a teacher backbone key.
 
     Args:
-        checkpoint_path:    Path to the .pth checkpoint file.
-        backbone_name:      Backbone string (e.g. "resnet50").
+        checkpoint_path:     Path to the .pth checkpoint file.
+        backbone_name:       Backbone string (e.g. "resnet50").
         pretrained_fallback: If True, initialise with ImageNet weights before
                              loading checkpoint (safe to keep True; checkpoint
                              will override anyway).
@@ -85,11 +90,11 @@ def load_backbone_from_checkpoint(checkpoint_path, backbone_name, pretrained_fal
     backbone, embed_dim = get_backbone(backbone_name, pretrained=pretrained_fallback)
     if checkpoint_path is not None:
         ckpt = torch.load(checkpoint_path, map_location="cpu")
-        if "student_backbone" in ckpt:
-            backbone.load_state_dict(ckpt["student_backbone"])
-            print(f"Loaded student backbone weights from {checkpoint_path}")
+        if "teacher_backbone" in ckpt:
+            backbone.load_state_dict(ckpt["teacher_backbone"])
+            print(f"Loaded teacher backbone weights from {checkpoint_path}")
         else:
-            print("Warning: 'student_backbone' key not found in checkpoint — using ImageNet weights.")
+            print("Warning: 'teacher_backbone' key not found in checkpoint — using ImageNet weights.")
     return backbone, embed_dim
 
 
