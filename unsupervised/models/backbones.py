@@ -49,7 +49,8 @@ def get_vit_small(pretrained=True):
     model = timm.create_model(
         "vit_small_patch16_224",
         pretrained=pretrained,
-        num_classes=0,   
+        num_classes=0,
+        dynamic_img_size=True,   # allows local crops (96×96) via positional embedding interpolation
     )
     return model, 384
 
