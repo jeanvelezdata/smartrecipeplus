@@ -110,8 +110,7 @@ This prints the dataset size and displays a 4×4 grid of sample images.
 python pretrain.py --config configs/resnet50.yaml
 ```
 
-Expected training time on Colab T4: **~5–8 hours for 30 epochs**.
-Expected training time on RTX 4050 (6 GB): **~8–12 hours for 30 epochs** (use `--low-memory`).
+Expected training time on Colab L4: **~11-12 hours for 30 epochs**.
 
 ### ViT-Small/16
 
@@ -119,7 +118,7 @@ Expected training time on RTX 4050 (6 GB): **~8–12 hours for 30 epochs** (use 
 python pretrain.py --config configs/vit_small16.yaml
 ```
 
-Expected training time on Colab T4: **~6–10 hours for 30 epochs**.
+Expected training time on Colab L4: **~11-12 hours for 30 epochs**.
 
 ### Resuming a Run
 
@@ -153,7 +152,7 @@ epoch,batch,loss,lr,momentum,timestamp
 ...
 ```
 
-Loss typically drops from ~10–11 (random init) to ~7–8 by epoch 30 on Food-101. Stable training shows a smooth monotone decrease without sudden spikes.
+Stable training shows a smooth monotone decrease without sudden spikes.
 
 ---
 
@@ -297,10 +296,10 @@ cluster_ids = data["cluster_ids"]  # int32,   shape [N]  — k-means cluster (if
 
 | Encoder | Backbone | Top-1 Acc | Top-5 Acc |
 |---|---|---|---|
-| ImageNet pretrained (baseline) | ResNet-50 | ~55–60% | ~80–84% |
-| Food-DINO pretrained | ResNet-50 | ~58–64% | ~82–87% |
-| ImageNet pretrained (baseline) | ViT-S/16  | ~60–65% | ~83–87% |
-| Food-DINO pretrained | ViT-S/16  | ~63–68% | ~85–89% |
+| ImageNet pretrained (baseline) | ResNet-50 | ~68.7% | ~90.4% |
+| Food-DINO pretrained | ResNet-50 | ~86.7% | ~97.4% |
+| ImageNet pretrained (baseline) | ViT-S/16  | ~79.4% | ~94.9% |
+| Food-DINO pretrained | ViT-S/16  | ~88.1% | ~97.5% |
 
 Even a small gain over the ImageNet baseline (+2–5 pp) confirms the encoder has adapted to food-domain features beyond what ImageNet pretraining provides.
 
